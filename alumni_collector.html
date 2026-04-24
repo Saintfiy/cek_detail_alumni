@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
+<title>Alumni AI Data Collector</title>
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+body{font-family:system-ui,sans-serif;background:#f0f2f5;color:#1a1a1a}
+.topbar{background:#1a1a2e;color:white;padding:14px 24px;display:flex;align-items:center;gap:12px}
+.topbar h1{font-size:16px;font-weight:600}
+.badge{background:#4CAF50;color:white;font-size:11px;padding:3px 8px;border-radius:20px}
+.main{max-width:980px;margin:20px auto;padding:0 16px;display:grid;grid-template-columns:340px 1fr;gap:16px;align-items:start}
+.card{background:white;border-radius:12px;padding:18px;box-shadow:0 1px 4px rgba(0,0,0,.08);margin-bottom:16px}
+.card h3{font-size:11px;font-weight:600;color:#888;text-transform:uppercase;letter-spacing:.06em;margin-bottom:12px}
+label{display:block;font-size:12px;color:#555;margin:8px 0 3px}
+input{width:100%;padding:8px 10px;border:1px solid #ddd;border-radius:7px;font-size:13px;background:white;color:#111}
+input:focus{outline:2px solid #4CAF50;border-color:transparent}
+.row2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+.btns{display:flex;gap:8px;margin-top:14px;flex-wrap:wrap}
+.btn{padding:9px 16px;border:none;border-radius:8px;font-size:13px;font-weight:500;cursor:pointer}
+.btn:disabled{opacity:.4;cursor:not-allowed}
+.btn-g{background:#4CAF50;color:white}
+.btn-r{background:#e53935;color:white}
+.btn-n{background:#eee;color:#333}
+.stats{display:grid;grid-template-columns:repeat(4,1fr);gap:8px;margin-bottom:12px}
+.stat{background:#f8f9fa;border-radius:8px;padding:10px;text-align:center}
+.stat-n{font-size:22px;font-weight:700}
+.stat-l{font-size:11px;color:#888;margin-top:2px}
+.c-blue{color:#1565c0}.c-green{color:#2e7d32}.c-amber{color:#e65100}.c-red{color:#c62828}
+.prog-bg{background:#e0e0e0;border-radius:6px;height:8px;overflow:hidden;margin-bottom:8px}
+.prog-fg{height:100%;background:linear-gradient(90deg,#4CAF50,#2196F3);border-radius:6px;transition:width .4s;width:0}
+.prog-txt{font-size:12px;color:#777;text-align:center;margin-bottom:12px}
+.cur-box{background:#f1f8e9;border:1px solid #aed581;border-radius:10px;padding:12px;min-height:80px}
+.cur-name{font-size:14px;font-weight:600;color:#33691e}
+.cur-meta{font-size:12px;color:#555;margin-top:3px}
+.cur-grid{display:grid;grid-template-columns:1fr 1fr;gap:5px;margin-top:10px}
+.cf{background:white;border:1px solid #e0e0e0;border-radius:6px;padding:6px 8px}
+.cf-l{font-size:10px;color:#888}
+.cf-v{font-size:11px;color:#111;font-weight:500;word-break:break-all}
+.log{background:#0d1117;color:#a8ff78;font-family:monospace;font-size:12px;padding:12px;border-radius:10px;height:440px;overflow-y:auto;line-height:1.6}
+.le{color:#ff6b6b}.lw{color:#ffd166}.li{color:#6ec6f5}.lo{color:#a8ff78}
+.schema-box{background:#f8f8f8;border:1px solid #ddd;border-radius:8px;padding:10px;margin-bottom:10px;font-size:11px;color:#555;line-height:1.8}
+.schema-box b{color:#1a1a1a}
+</style>
+</head>
+<body>
+<div class="topbar">
+  <h1>Alumni AI Data Collector &ndash; Malang</h1>
+  <span class="badge">13526 alumni</span>
+</div>
+<div class="main">
+  <div>
+    <div class="card">
+      <h3>Konfigurasi Supabase</h3>
+      <div class="schema-box">
+        <b>Tabel:</b> alumni &nbsp;|&nbsp; <b>Identifier:</b> full_name<br>
+        <b>Kolom update:</b> linkedin, instagram, facebook, tiktok, email, phone, workplace, workplace_address, position, employment_type, workplace_social_media
+      </div>
+      <label>Supabase URL</label>
+      <input id="sbUrl" value="https://pkmyssnpsswglepawngc.supabase.co">
+      <label>Service Role Key</label>
+      <input id="sbKey" type="password" value="eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBrbXlzc25wc3N3Z2xlcGF3bmdjIiwicm9sZSI6InNlcnZpY2Vfcm9sZSIsImlhdCI6MTc3Njc4NDUwNiwiZXhwIjoyMDkyMzYwNTA2fQ.g9C4iEmeCZBiHjf8H1cejyhZfY518oCqzd_Z93rcMSw">
+      <label>OpenAi API Key</label>
+      <input id="apiKey" placeholder="sk-ant-api03-..." type="password">
+      <div class="row2">
+        <div><label>Offset mulai</label><input id="startOff" type="number" value="0" min="0"></div>
+        <div><label>Jumlah per sesi</label><input id="sessLim" type="number" value="30" min="1" max="200"></div>
+      </div>
+      <div class="row2">
+        <div><label>Delay antar alumni (ms)</label><input id="delayMs" type="number" value="2000" min="500"></div>
+        <div><label>Nama Universitas</label><input id="uniName" value="Unmer Malang"></div>
+      </div>
+      <div class="btns">
+        <button class="btn btn-g" id="btnStart" onclick="doStart()">&#9654; Mulai</button>
+        <button class="btn btn-r" id="btnStop" onclick="doStop()" disabled>&#9632; Stop</button>
+        <button class="btn btn-n" onclick="doTest()">Test Koneksi</button>
+      </div>
+    </div>
+    <div class="card">
+      <h3>Sedang diproses</h3>
+      <div class="cur-box">
+        <div class="cur-name" id="curName" style="color:#aaa">Belum dimulai</div>
+        <div class="cur-meta" id="curMeta"></div>
+        <div class="cur-grid" id="curGrid"></div>
+      </div>
+    </div>
+  </div>
+  <div>
+    <div class="card">
+      <h3>Statistik</h3>
+      <div class="stats">
+        <div class="stat"><div class="stat-n c-blue" id="sTotal">13526</div><div class="stat-l">Total</div></div>
+        <div class="stat"><div class="stat-n c-green" id="sDone">0</div><div class="stat-l">Tersimpan</div></div>
+        <div class="stat"><div class="stat-n c-amber" id="sSkip">0</div><div class="stat-l">Skip</div></div>
+        <div class="stat"><div class="stat-n c-red" id="sErr">0</div><div class="stat-l">Error</div></div>
+      </div>
+      <div class="prog-bg"><div class="prog-fg" id="progFg"></div></div>
+      <div class="prog-txt" id="progTxt">Siap memproses 13526 alumni</div>
+    </div>
+    <div class="card">
+      <h3>Log</h3>
+      <div class="log" id="logBox"></div>
+    </div>
+  </div>
+</div>
+<script src="data.js"></script>
+<script>
+
+var running = false;
+var stopFlag = false;
+var cntDone = 0, cntSkip = 0, cntErr = 0;
+
+function addLog(msg, cls) {
+  var b = document.getElementById('logBox');
+  var d = document.createElement('div');
+  d.className = cls || 'lo';
+  var t = new Date().toLocaleTimeString('id-ID');
+  d.textContent = t + '  ' + msg;
+  b.appendChild(d);
+  b.scrollTop = b.scrollHeight;
+}
+
+function updStats() {
+  document.getElementById('sDone').textContent = cntDone;
+  document.getElementById('sSkip').textContent = cntSkip;
+  document.getElementById('sErr').textContent = cntErr;
+}
+
+function updProg(done, total) {
+  var p = total > 0 ? Math.round(done / total * 100) : 0;
+  document.getElementById('progFg').style.width = p + '%';
+  document.getElementById('progTxt').textContent = done + '/' + total + ' (' + p + '%)';
+}
+
+function showCurrent(rec, result) {
+  document.getElementById('curName').textContent = rec.full_name;
+  document.getElementById('curName').style.color = '';
+  var meta = [rec.major, rec.faculty, rec.entry_year].filter(Boolean).join(' • ');
+  document.getElementById('curMeta').textContent = meta;
+  if (!result) {
+    document.getElementById('curGrid').innerHTML = '<span style="font-size:12px;color:#aaa">Tidak ada data ditemukan</span>';
+    return;
+  }
+  var fields = [
+    ['linkedin','LinkedIn'],['instagram','Instagram'],['facebook','Facebook'],['tiktok','TikTok'],
+    ['email','Email'],['phone','Phone'],['workplace','Tempat Kerja'],
+    ['position','Posisi'],['employment_type','Status'],['workplace_address','Alamat Kerja'],
+    ['workplace_social_media','Sosmed Kantor']
+  ];
+  var h = '';
+  for (var i = 0; i < fields.length; i++) {
+    var k = fields[i][0], l = fields[i][1];
+    if (result[k]) {
+      h += '<div class="cf"><div class="cf-l">' + l + '</div><div class="cf-v">' + result[k] + '</div></div>';
+    }
+  }
+  document.getElementById('curGrid').innerHTML = h || '<span style="font-size:12px;color:#aaa">Semua null</span>';
+}
+
+function doTest() {
+  var url = document.getElementById('sbUrl').value.trim();
+  var key = document.getElementById('sbKey').value.trim();
+  addLog('Menguji koneksi ke tabel alumni...', 'li');
+  fetch(url + '/rest/v1/alumni?select=full_name,nim&limit=3', {
+    headers: { apikey: key, Authorization: 'Bearer ' + key }
+  }).then(function(r) {
+    if (r.ok) {
+      r.json().then(function(d) {
+        addLog('Berhasil! Contoh data: ' + JSON.stringify(d.map(function(x){ return x.full_name; })), 'lo');
+      });
+    } else {
+      r.text().then(function(t) {
+        addLog('Gagal HTTP ' + r.status + ': ' + t, 'le');
+      });
+    }
+  }).catch(function(e) {
+    addLog('Error: ' + e.message, 'le');
+  });
+}
+
+function callAI(rec, callback) {
+  var apiKey = document.getElementById('apiKey').value.trim();
+  var uni = document.getElementById('uniName').value.trim();
+  if (!apiKey) { callback(new Error('API Key Gemini belum diisi'), null); return; }
+
+  var nama = rec.full_name;
+  var major = rec.major || '';
+  var faculty = rec.faculty || '';
+  var nim = rec.nim || '';
+  var year = rec.entry_year || '';
+
+  var prompt = 'Kamu adalah asisten pencarian data alumni universitas Indonesia.\n\nCari informasi terkini untuk alumni berikut menggunakan web search:\nNama: ' + nama + '\nNIM: ' + nim + '\nFakultas: ' + faculty + '\nProgram Studi: ' + major + '\nTahun Masuk: ' + year + '\nUniversitas: ' + uni + '\n\nLakukan pencarian dengan query:\n1. \"' + nama + ' ' + uni + '\"\n2. \"' + nama + ' ' + major + ' alumni\"\n3. \"' + nama + ' linkedin\"\n\nKembalikan HANYA JSON berikut tanpa markdown atau komentar apapun:\n{\"linkedin\":null,\"instagram\":null,\"facebook\":null,\"tiktok\":null,\"email\":null,\"phone\":null,\"workplace\":null,\"workplace_address\":null,\"position\":null,\"employment_type\":null,\"workplace_social_media\":null}\n\nIsi field yang berhasil ditemukan dengan data yang akurat. employment_type hanya boleh diisi: PNS, Swasta, atau Wirausaha. Jika tidak ditemukan sama sekali, semua isi null.';
+
+  fetch('http://localhost:5001/anthropic', {
+    method: 'POST',
+    headers: {
+      'Content-Type': 'application/json',
+      'x-api-key': apiKey
+    },
+    body: JSON.stringify({
+      model: 'claude-3-5-sonnet-20241022',
+      max_tokens: 1000,
+      tools: [{ type: 'web_search_20250305', name: 'web_search' }],
+      messages: [{ role: 'user', content: prompt }]
+    })
+  }).then(function(r) {
+    if (!r.ok) {
+      r.text().then(function(t) {
+        callback(new Error('API ' + r.status + ': ' + t.slice(0, 200)), null);
+      });
+      return;
+    }
+    r.json().then(function(data) {
+      var text = '';
+      for (var i = 0; i < data.content.length; i++) {
+        if (data.content[i].type === 'text') { text += data.content[i].text; }
+      }
+      var s = text.indexOf('{');
+      var e = text.lastIndexOf('}');
+      if (s < 0 || e < 0) { callback(null, null); return; }
+      try {
+        callback(null, JSON.parse(text.slice(s, e + 1)));
+      } catch(ex) {
+        callback(null, null);
+      }
+    });
+  }).catch(function(e) { callback(e, null); });
+}
+
+function patchSupabase(rec, result, callback) {
+  var url = document.getElementById('sbUrl').value.trim();
+  var key = document.getElementById('sbKey').value.trim();
+  var FIELDS = ['linkedin','instagram','facebook','tiktok','email','phone',
+                'workplace','workplace_address','position','employment_type','workplace_social_media'];
+  var payload = {};
+  var any = false;
+  for (var i = 0; i < FIELDS.length; i++) {
+    var f = FIELDS[i];
+    if (result[f] != null && result[f] !== '') {
+      payload[f] = result[f];
+      any = true;
+    }
+  }
+  payload['tracking_status'] = 'Teridentifikasi dari sumber publik';
+  payload['last_tracked_at'] = new Date().toISOString();
+  if (!any) {
+    payload['tracking_status'] = 'Belum ditemukan di sumber publik';
+    payload['last_tracked_at'] = new Date().toISOString();
+  }
+  var val = encodeURIComponent(rec.full_name);
+  fetch(url + '/rest/v1/alumni?full_name=eq.' + val, {
+    method: 'PATCH',
+    headers: {
+      apikey: key,
+      Authorization: 'Bearer ' + key,
+      'Content-Type': 'application/json',
+      Prefer: 'return=minimal'
+    },
+    body: JSON.stringify(payload)
+  }).then(function(r) {
+    if (!r.ok) {
+      r.text().then(function(t) { callback(new Error('PATCH: ' + t), false); });
+      return;
+    }
+    callback(null, any);
+  }).catch(function(e) { callback(e, false); });
+}
+
+function processOne(subset, idx, total, delay, done) {
+  if (stopFlag || idx >= subset.length) { done(); return; }
+  var rec = subset[idx];
+  addLog('[' + (idx + 1) + '/' + total + '] Mencari: ' + rec.full_name, 'li');
+  document.getElementById('curName').textContent = rec.full_name;
+  document.getElementById('curName').style.color = '';
+  document.getElementById('curMeta').textContent = [rec.major, rec.faculty, rec.entry_year].filter(Boolean).join(' • ');
+  document.getElementById('curGrid').innerHTML = '<span style="font-size:12px;color:#aaa">Mencari...</span>';
+
+  callAI(rec, function(err, result) {
+    if (err) {
+      addLog('  ERROR: ' + err.message, 'le');
+      cntErr++;
+      showCurrent(rec, null);
+      updStats();
+      updProg(idx + 1, total);
+      setTimeout(function() { processOne(subset, idx + 1, total, delay, done); }, delay);
+      return;
+    }
+    showCurrent(rec, result);
+    if (!result) {
+      addLog('  Parse gagal, skip', 'lw');
+      cntSkip++;
+      updStats();
+      updProg(idx + 1, total);
+      setTimeout(function() { processOne(subset, idx + 1, total, delay, done); }, delay);
+      return;
+    }
+    patchSupabase(rec, result, function(perr, hasData) {
+      if (perr) {
+        addLog('  Supabase error: ' + perr.message, 'le');
+        cntErr++;
+      } else if (hasData) {
+        var found = [];
+        var FIELDS = ['linkedin','instagram','facebook','tiktok','email','phone',
+                      'workplace','workplace_address','position','employment_type','workplace_social_media'];
+        for (var i = 0; i < FIELDS.length; i++) {
+          if (result[FIELDS[i]]) { found.push(FIELDS[i]); }
+        }
+        addLog('  Tersimpan: ' + found.join(', '), 'lo');
+        cntDone++;
+      } else {
+        addLog('  Tidak ditemukan, status diupdate', 'lw');
+        cntSkip++;
+      }
+      updStats();
+      updProg(idx + 1, total);
+      setTimeout(function() { processOne(subset, idx + 1, total, delay, done); }, delay);
+    });
+  });
+}
+
+function doStart() {
+  if (running) return;
+  running = true;
+  stopFlag = false;
+  cntDone = 0;
+  cntSkip = 0;
+  cntErr = 0;
+  updStats();
+  document.getElementById('btnStart').disabled = true;
+  document.getElementById('btnStop').disabled = false;
+
+  var offset = parseInt(document.getElementById('startOff').value) || 0;
+  var limit = parseInt(document.getElementById('sessLim').value) || 30;
+  var delay = parseInt(document.getElementById('delayMs').value) || 2000;
+  var subset = RECORDS.slice(offset, offset + limit);
+
+  addLog('Memulai ' + subset.length + ' alumni dari offset ' + offset, 'li');
+  updProg(0, subset.length);
+
+  processOne(subset, 0, subset.length, delay, function() {
+    addLog('Selesai! Tersimpan: ' + cntDone + '  Skip: ' + cntSkip + '  Error: ' + cntErr, 'lo');
+    running = false;
+    document.getElementById('btnStart').disabled = false;
+    document.getElementById('btnStop').disabled = true;
+  });
+}
+
+function doStop() {
+  stopFlag = true;
+  document.getElementById('btnStop').disabled = true;
+  addLog('Menghentikan setelah alumni ini selesai...', 'lw');
+}
+</script>
+</body>
+</html>
