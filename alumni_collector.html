@@ -182,7 +182,7 @@ function doTest() {
 function callAI(rec, callback) {
   var apiKey = document.getElementById('apiKey').value.trim();
   var uni = document.getElementById('uniName').value.trim();
-  if (!apiKey) { callback(new Error('API Key Gemini belum diisi'), null); return; }
+  if (!apiKey) { callback(new Error('API Key OpenAi belum diisi'), null); return; }
 
   var nama = rec.full_name;
   var major = rec.major || '';
