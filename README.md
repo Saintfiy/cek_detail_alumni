@@ -59,14 +59,4 @@ Tampilan detail alumni yang sedang diproses
 5. Penghentian Proses
 Pengguna dapat menghentikan proses dengan tombol Stop, yang akan:
 Menghentikan iterasi setelah proses saat ini selesai
-Menjaga konsistensi data
-🧩 Arsitektur Sistem
-Frontend: HTML, CSS, JavaScript
-Sumber Data: File lokal (data.js)
-AI Service: API lokal (integrasi AI + web search)
-Database: Supabase (REST API)
-🎯 Tujuan Sistem
-Mengotomatisasi pengayaan data alumni
-Mengurangi proses pencarian manual
-Meningkatkan kelengkapan dan kualitas data
-Mendukung analisis data alumni
+
